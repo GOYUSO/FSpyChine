@@ -2,6 +2,8 @@ __author__ = 'Antonio Segura Cano'
 __name__ = 'utils'
 
 import os
+import math
+
 
 def fix_size(s, l):
     r = s
@@ -18,19 +20,39 @@ def hasindeterminacy(edge):
 
 
 def matchindeterminacy(s0, s1):
-    res = False
-    if s0.__len__() == s1.__len__():
-        for bit0, bit1 in zip(s0, s1):
-            if bit0 != '-' and bit0 == bit1:
-                res = True
+    res = True
+    for bit0, bit1 in zip(s0, s1):
+        if bit0 != '-' and bit0 != bit1:
+            res = False
+            break
     return res
 
 
 def log(filepath, numline):
     print "Format kiss2 wrong at line " + numline.__str__()
-    os.system('(date "+DATE: %Y-%m-%d%nTIME: %H:%M" && echo "' +
-              filepath + ' wrong at line '+numline.__str__() + '") >> ../logs/error.log')
+    os.system('(date "+DATE: %Y-%m-%d%nTIME: %H:%M" && echo "' + filepath +
+              ' wrong at line '+numline.__str__() + '") >> ../logs/error.log')
+
 
 def treatment_size(s, l):
     return s.__len__() == int(l)
+
+def getPatternsAux(statesdict, actual, statesvisited, value0):
+    state = statesdict[actual]
+    value = value0
+    statesvisited.append(actual)
+    for edge in state:
+        value += edge[1]
+        if edge[0] in statesvisited:
+            return
+        if edge[2] == "1":
+            statesvisited.append(edge[1])
+            print value
+        else:
+            getPatternsAux(statesdict, edge[0], statesvisited, value)
+
+    print "Empieza"
+
+    pass
+
 

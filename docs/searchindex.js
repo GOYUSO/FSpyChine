@@ -1,0 +1,1 @@
+Search.setIndex({envversion:46,filenames:["_sources/index","index"],objects:{},objnames:{},objtypes:{},terms:{content:[0,1],index:[0,1],modul:[0,1],page:[0,1],search:[0,1]},titles:["Welcome to FSpyChine&#8217;s documentation!","Welcome to FSpyChine&#8217;s documentation!"],titleterms:{document:[0,1],fspychin:[0,1],indic:[0,1],tabl:[0,1],welcom:[0,1]}})
