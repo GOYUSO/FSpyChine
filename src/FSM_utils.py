@@ -4,6 +4,7 @@ __name__ = 'utils'
 import os
 import math
 
+import tkMessageBox
 
 def fix_size(s, l):
     r = s
@@ -41,18 +42,17 @@ def getPatternsAux(statesdict, actual, statesvisited, value0):
     state = statesdict[actual]
     value = value0
     statesvisited.append(actual)
+    store = ""
     for edge in state:
         value += edge[1]
         if edge[0] in statesvisited:
             return
         if edge[2] == "1":
             statesvisited.append(edge[1])
-            print value
+            store += store +"\n"+ value
         else:
             getPatternsAux(statesdict, edge[0], statesvisited, value)
 
-    print "Empieza"
-
-    pass
+    tkMessageBox.showinfo("The patterns are the following: ",store)
 
 

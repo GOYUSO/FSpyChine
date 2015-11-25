@@ -1,5 +1,39 @@
 from Tkinter import *
 from FSM_class import *
+
+from os.path import expanduser
+home = expanduser("~")
+
+def refresh(self,frame,inputs):
+
+    # inputs = [
+    #     ("Min number of bits", "vmin", Entry, 1),
+    #     ("Max number of bits", "vmax", Entry, 3),
+    #     ("Seed", "seed", Entry, "mySeed"),
+    #     ("Number of states", "states", Entry, 5),
+    #     ("Indeterminacy", "ind", Scale, 0.0),
+    #     ("Loops", "loops", Scale, 0.0)
+    # ]
+
+    n = 2
+
+    for text, value, f, default in inputs:
+        Label(frame, text=text, bg=self.MAIN_COLOR).grid(row=n,column=3,sticky=E)
+        if f == Entry:
+            if type(default) is int:
+                self.results[value] = IntVar()
+            else:
+                self.results[value] = StringVar()
+            t1 = f(frame, textvariable=self.results[value])
+            t1.grid(row=n,column=4)
+        if f == Scale:
+            self.results[value] = IntVar()
+            f(frame, orient=HORIZONTAL, sliderlength=20,variable=self.results[value], bg=self.MAIN_COLOR).grid(row=n,column=4)
+
+        self.results[value].set(default)
+        n += 1
+
+
 class App:
 
     def __init__(self,master):
@@ -7,11 +41,23 @@ class App:
         self.MAIN_COLOR = "#ffffff"
         self.SEC_COLOR = "#fff"
 
-        frame = Frame(master, bg=self.MAIN_COLOR)
-        frame.pack()
+        self.frame = Frame(master, bg=self.MAIN_COLOR)
+        self.frame.pack()
+
+        try:
+            self.input = self.input
+        except AttributeError:
+            self.input = [
+                    ("Input (bits)", "vmin", Entry, 1),
+                    ("Ouput (bits)", "vmax", Entry, 3),
+                    ("Seed", "seed", Entry, "mySeed"),
+                    ("Number of states", "states", Entry, 5),
+                    ("Loops (%)", "loops", Scale, 0.0),
+                    ("Jumps (%)", "jumps", Scale, 0.0)
+                ]
 
         Label(
-            frame, padx=10, pady=10 ,relief=RIDGE, text="Please, select a FSM",
+            self.frame, padx=10, pady=10 ,relief=RIDGE, text="Please, select a FSM",
             justify=CENTER, fg="#00aa00", background=self.SEC_COLOR).grid(row=0,columnspan=5)
 
         radios = [
@@ -23,116 +69,140 @@ class App:
         self.v.set(1)
         n=2
         for text, value in radios:
-            b = Radiobutton(frame, text=text, variable=self.v, value=value, command=self.radio_action, bg=self.MAIN_COLOR)
+            b = Radiobutton(self.frame, text=text, variable=self.v, value=value, command=self.radio_action, bg=self.MAIN_COLOR)
             b.grid(row=n, column=0, sticky=W)
             n += 1
 
         self.results = {}
 
-        inputs = [
-            ("Min number of bits", "vmin", Entry, 1),
-            ("Max number of bits", "vmax", Entry, 3),
-            ("Seed", "seed", Entry, "mySeed"),
-            ("Number of states", "states", Entry, 5),
-            ("Indeterminacy", "ind", Scale, 0.0),
-            ("Loops", "loops", Scale, 0.0)
-        ]
 
-        n = 2
+        refresh(self,self.frame,self.input)
 
-        for text, value, f, default in inputs:
-            Label(frame, text=text, bg=self.MAIN_COLOR).grid(row=n,column=3,sticky=E)
-            if f == Entry:
-                if type(default) is int:
-                    self.results[value] = IntVar()
-                else:
-                    self.results[value] = StringVar()
-                t1 = f(frame, textvariable=self.results[value])
-                t1.grid(row=n,column=4)
-            if f == Scale:
-                self.results[value] = IntVar()
-                f(frame, orient=HORIZONTAL, sliderlength=20,variable=self.results[value], bg=self.MAIN_COLOR).grid(row=n,column=4)
+        def exportKiss2():
+            method_name = "fsm_" + str(self.v.get())
+            method = getattr(self, method_name)
+            return method()
 
-            self.results[value].set(default)
-            n += 1
+        Label(self.frame, text="Path to export", bg=self.MAIN_COLOR).grid(row=6,column=0,sticky=E)
+        self.results["path"] = StringVar()
+        self.results["path"].set(home+"/yourfile")
 
-        # CANVAS
+        t1 = Entry(self.frame, textvariable=self.results["path"])
+        t1.grid(row=6,column=1)
 
-        # self.canvas = {"width":150,"height":100,"rects":10, "rectangles":[]}
-        # w = Canvas(frame, bd=1, relief=GROOVE, width=self.canvas["width"], height=self.canvas["height"])
-        # # w.grid(column=0,rowspan=1)
-        #
-        # n = self.canvas["rects"]
-        # nw = self.canvas["width"] / n
-        # w.create_line(0, 100, 200, 100)
-        #
-        # values = [0,0.1,0.1,0.2,0.2,0.1,0,0.1,0.1,0.1]
-        # hvalue = self.canvas["height"]/100
-        #
-        # def callback(event):
-        #     canvas = event.widget
-        #
-        #     x = canvas.canvasx(event.x)
-        #     y = canvas.canvasy(event.y)
-        #     print x
-        #     print canvas.find_closest(x, y)
-        #
-        # for rect in range(n):
-        #     mheight = values[rect]*hvalue*self.canvas["height"]
-        #     rect = w.create_rectangle(rect*nw+nw/2,self.canvas["height"]-mheight-1,rect*nw+nw,self.canvas["height"],fill="blue", tags=str(rect))
-        #     w.tag_bind(str(rect),None,callback)
-        #     print rect
-        #
-        # w.grid(column=0,rowspan=1)
+        b1 = Button(master, text="Export kiss2", command=exportKiss2)
+        # b1.pack()
+        b1.pack()
 
+        def image():
+            method_name = "image_" + str(self.v.get())
+            method = getattr(self, method_name)
+            return method()
 
-        # w.create_rectangle(0,0,50,100,fill="red")
+        b2 = Button(master, text="Export image", command=image)
+        b2.pack()
 
-        # ENDCANVAS
+        def getPatterns():
+            method_name = "getPatterns"
+            method = getattr(self, method_name)
+            return method()
+
+        b3 = Button(master, text="Get patterns", command=getPatterns)
+        b3.pack()
 
 
 
+        self.n = 0
+
+    def getPatterns(self):
+        r = self.results
+        x = FSM(
+            seed = r["seed"].get(),
+            input=r["vmin"].get(),
+            output=r["vmax"].get(),
+            states=r["states"].get(),
+            loops=r["loops"].get())
+        x.build(pattern)
+        x.getPatterns()
 
     def radio_action(self):
-        method_name = "fsm_" + str(self.v.get())
-        method = getattr(self, method_name)
-        return method()
+        # method_name = "fsm_" + str(self.v.get())
+        # method = getattr(self, method_name)
+        # return method()
+        pass
 
     def fsm_1(self):
+
         r = self.results
-        FSM(
+        x = FSM(
             seed=r["seed"].get(),
-            min=r["vmin"].get(),
-            max=r["vmax"].get(),
+            input=r["vmin"].get(),
+            output=r["vmax"].get(),
             states=r["states"].get(),
-            indeterminacy=r["ind"].get(),
-            loops=r["loops"].get()).build(random)
-        print "random"
+            loops=r["loops"].get())
+        x.build(random)
+        x.kiss2(r["path"].get())
 
     def fsm_2(self):
         r = self.results
-        FSM(
+        x = FSM(
             seed = r["seed"].get(),
-            min=r["vmin"].get(),
-            max=r["vmax"].get(),
+            input=r["vmin"].get(),
+            output=r["vmax"].get(),
             states=r["states"].get(),
-            loops=r["loops"].get()).build(sequential)
-
-        print "sequential"
+            jumps=r["jumps"].get(),
+            loops=r["loops"].get())
+        x.build(sequential)
+        x.kiss2(r["path"].get())
 
     def fsm_3(self):
         r = self.results
-        FSM(
+        x = FSM(
             seed = r["seed"].get(),
-            min=r["vmin"].get(),
-            max=r["vmax"].get(),
+            input=r["vmin"].get(),
+            output=r["vmax"].get(),
             states=r["states"].get(),
-            loops=r["loops"].get()).build(pattern)
-        print "patterns"
+            loops=r["loops"].get())
+        x.build(pattern)
+        x.kiss2(r["path"].get())
+
+    def image_1(self):
+        r = self.results
+        x = FSM(
+            seed=r["seed"].get(),
+            input=r["vmin"].get(),
+            output=r["vmax"].get(),
+            states=r["states"].get(),
+            loops=r["loops"].get())
+        x.build(random)
+        x.image(r["path"].get())
+
+    def image_2(self):
+        r = self.results
+        x = FSM(
+            seed = r["seed"].get(),
+            input=r["vmin"].get(),
+            output=r["vmax"].get(),
+            states=r["states"].get(),
+            jumps=r["jumps"].get(),
+            loops=r["loops"].get())
+        x.build(sequential)
+        x.image(r["path"].get())
+
+    def image_3(self):
+        r = self.results
+        x = FSM(
+            seed = r["seed"].get(),
+            input=r["vmin"].get(),
+            output=r["vmax"].get(),
+            states=r["states"].get(),
+            loops=r["loops"].get())
+        x.build(pattern)
+        x.image(r["path"].get())
 
 
 root = Tk()
-root.geometry("500x500")
+root.geometry("550x300")
 root.title("FSpyChine -- Developed by Antonio Segura Cano")
 
 app = App(root)

@@ -3,6 +3,8 @@ __author__ = 'Antonio Segura Cano'
 import numpy as np
 import time
 
+import tkMessageBox
+
 from wildcards import wildcard
 
 from FSM_utils import *
@@ -29,14 +31,19 @@ class FSM:
     def build(self, f):
         self.statesdict = f(self.meta)
 
-    def kiss2(self):
+    def kiss2(self, *args):
+        path = time.strftime("FSM_%m%d%H%M%S.kiss2")
+        if args:
+            path = args[0]
         stated = self.statesdict
-        name = time.strftime("FSM_%m%d%H%M%S.kiss2")
+        if not stated:
+            stated = self.meta["statesdict"]
+        # name = time.strftime("FSM_%m%d%H%M%S.kiss2")
         if stated.__len__() != 0:
             p = 0
             i = False
             o = False
-            outfile = open("./"+name, 'a')
+            outfile = open(path, 'a')
             blob = ""
             for statenode in stated:
                 if not i or not o or not r:
@@ -56,8 +63,14 @@ class FSM:
         else:
             print "Sorry, but you must create a FSM with 'built' method first"
 
-    def image(self):
+    def image(self, *args):
+        path = time.strftime("FSM_%m%d%H%M%S.png")
+        if args:
+            path = args[0]
+
         infile = self.statesdict
+        if not infile:
+            infile = self.meta["statesdict"]
         # outfile = open("./temp.txt", 'w').close()
         outfile = open("./temp.txt", 'w')
         outfile.write("digraph g{\n\t")
@@ -70,7 +83,7 @@ class FSM:
         outfile.write(writemem+"\r}")
         outfile.close()
 
-        os.system("dot temp.txt -o result.png -Tpng && rm temp.txt")
+        os.system("dot temp.txt -o " + path + " -Tpng && rm temp.txt")
 
     def getPatterns(self):
         patternlist = []
@@ -133,16 +146,18 @@ def random(self):
     :return: A pack of random FSMs
     """
     seed = self["seed"]
-    min = self["min"]
-    max = self["max"]
+    inputs = self["input"]
+    outputs = self["output"]
     states = self["states"]
 
     statesdict = {}
 
     np.random.seed(int(seed, 36))
     npri = np.random.random_integers
-    numinput = npri(min, max)
-    numoutput = npri(min, max)
+    # numinput = npri(min, max)
+    # numoutput = npri(min, max)
+    numinput = inputs
+    numoutput = outputs
 
     if "pattern" in self:
         numoutput = 1
@@ -154,7 +169,7 @@ def random(self):
             o = npri(2**numoutput) - 1
             output = fix_size(bin(o)[2:], numoutput)
             nextstate = npri(stateslist.__len__()) - 1
-            print input + ' ' + state + ' ' + stateslist[nextstate] + ' ' + output
+            # print input + ' ' + state + ' ' + stateslist[nextstate] + ' ' + output
             stl.append((stateslist[nextstate],input,output))
             statesdict[state] = stl
 
@@ -176,17 +191,30 @@ def sequential(self):
         print "You must input seed, number of inputs/outputs and states parameters"
         return
 
+    if not "loops" in self:
+        self["loops"] = 0
+    if not "jumps" in self:
+        self["jumps"] = 0
+
+    if 100 <= self["loops"] + self["jumps"]:
+        # print "loops + jumps must be less than 1"
+        tkMessageBox.showinfo("Error", "loops + jumps must be less than 100")
+        return
+
     statesdict = {}
     np.random.seed(int(seed,36))
     npri = np.random.random_integers
     stateslist = ['s'+str(i) for i in range(states)]
 
-    if "loops" not in self or self["loops"] == 0:
+    if (self["loops"] == 0) and (self["jumps"] == 0):
         i = 1
         for state in stateslist:
             o = npri(2**int(output)) - 1
             out = fix_size(bin(o)[2:], output)
-            statesdict[state] = [(stateslist[i%(stateslist.__len__())],"---",out)]
+            op = ""
+            for l in range(input):
+                op = op + "-"
+            statesdict[state] = [(stateslist[i%(stateslist.__len__())],op,out)]
             i += 1
     else:
 
@@ -196,8 +224,15 @@ def sequential(self):
             for inp in range(2**int(input)):
                 out = npri(1,2**int(output)) - 1
                 nextState = stateslist[i%(stateslist.__len__())]
-                if npri(0,100) < self["loops"]*100 :
-                    nextState = state
+                dice = npri(0,100)
+                if dice < self["jumps"] :
+                    myrandom = npri(0,stateslist.__len__()-1)
+                    nextState = stateslist[myrandom]
+
+                else:
+                    if dice < (self["jumps"]+self["loops"]):
+                        nextState = state
+
 
                 res.append((nextState,fix_size("{0:b}".format(inp),input),fix_size("{0:b}".format(out),output)))
 
@@ -211,10 +246,10 @@ def sequential(self):
 
     return statesdict
 
-# x = FSM(seed="prueba", min=1,max=4,states=4,indeterminacy=0.3)
-# x.build(random)
 
-x1 = FSM(seed="mySeed", input=3, output=2, states=5, loops=0.5)
-x1.build(pattern)
-x1.image()
-x1.getPatterns()
+
+# x1 = FSM(seed="mySeed", input=1, output=1, states=10, loops=0, jumps=0)
+# x1.build(pattern)
+# x1.image()
+# # x1.kiss2()
+# x1.getPatterns()
