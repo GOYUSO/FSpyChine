@@ -1,4 +1,10 @@
-from Tkinter import *
+try:
+    # for Python2
+    from Tkinter import *   ## notice capitalized T in Tkinter
+except ImportError:
+    # for Python3
+    from tkinter import *   ## notice here too
+
 from FSM_class import *
 
 from os.path import expanduser
