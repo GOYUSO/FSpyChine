@@ -3,7 +3,7 @@ try:
     from Tkinter import *   ## notice capitalized T in Tkinter
 except ImportError:
     # for Python3
-    from tkinter import *   ## notice here too
+    from tkinter import *
 
 from FSM_class import *
 

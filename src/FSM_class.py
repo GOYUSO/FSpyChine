@@ -3,6 +3,8 @@ __author__ = 'Antonio Segura Cano'
 import numpy as np
 import time
 
+from graphviz import Digraph
+
 import tkMessageBox
 
 from wildcards import wildcard
@@ -65,6 +67,7 @@ class FSM:
 
     def image(self, *args):
         path = time.strftime("FSM_%m%d%H%M%S.png")
+
         if args:
             path = args[0]
 
@@ -72,18 +75,36 @@ class FSM:
         if not infile:
             infile = self.meta["statesdict"]
         # outfile = open("./temp.txt", 'w').close()
-        outfile = open("./temp.txt", 'w')
-        outfile.write("digraph g{\n\t")
-        writemem = ''
+        # outfile = open("./temp.txt", 'w')
+        # outfile.write("digraph g{\n\t")
+        # writemem = ''
+
+        dot = Digraph()
+        dot.format = 'png'
 
         for state in infile:
-            for edge in infile[state]:
-                writemem += state + ' -> ' + edge[0] + \
-                            ' [label="' + edge[1] + ' ' + edge[2] + '"];\n\t'
-        outfile.write(writemem+"\r}")
-        outfile.close()
+            dot.node(state, state)
 
-        os.system("dot temp.txt -o " + path + " -Tpng && rm temp.txt")
+        for state in infile:
+            # dot.node(state, state)
+            for edge in infile[state]:
+                dot.edge(state,edge[0],edge[1] + ' / ' + edge[2])
+        #         writemem += state + ' -> ' + edge[0] + \
+        #                     ' [label="' + edge[1] + ' ' + edge[2] + '"];\n\t'
+        #
+        # writemem += "\r}"
+        # outfile.write(writemem)
+        # outfile.close()
+
+        # writemem = "digraph g{\n\t" + writemem
+        # https://pypi.python.org/pypi/graphviz
+
+        dot.view()
+        # dot.render('test.gv', view=True)
+
+
+
+        # os.system("dot temp.txt -o " + path + " -Tpng && rm temp.txt")
 
     def getPatterns(self):
         patternlist = []
@@ -169,7 +190,6 @@ def random(self):
             o = npri(2**numoutput) - 1
             output = fix_size(bin(o)[2:], numoutput)
             nextstate = npri(stateslist.__len__()) - 1
-            # print input + ' ' + state + ' ' + stateslist[nextstate] + ' ' + output
             stl.append((stateslist[nextstate],input,output))
             statesdict[state] = stl
 
@@ -197,7 +217,6 @@ def sequential(self):
         self["jumps"] = 0
 
     if 100 <= self["loops"] + self["jumps"]:
-        # print "loops + jumps must be less than 1"
         tkMessageBox.showinfo("Error", "loops + jumps must be less than 100")
         return
 
@@ -247,7 +266,7 @@ def sequential(self):
     return statesdict
 
 
-
+#
 # x1 = FSM(seed="mySeed", input=1, output=1, states=10, loops=0, jumps=0)
 # x1.build(pattern)
 # x1.image()
