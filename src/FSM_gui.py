@@ -23,8 +23,12 @@ def refresh(self,frame,inputs):
 
     n = 2
 
+    memo = []
+
     for text, value, f, default in inputs:
-        Label(frame, text=text, bg=self.MAIN_COLOR).grid(row=n,column=3,sticky=E)
+        label = Label(frame, text=text, bg=self.MAIN_COLOR)
+        label.grid(row=n,column=3,sticky=E)
+        memo.append(label)
         if f == Entry:
             if type(default) is int:
                 self.results[value] = IntVar()
@@ -38,6 +42,8 @@ def refresh(self,frame,inputs):
 
         self.results[value].set(default)
         n += 1
+
+    return memo
 
 
 class App:
@@ -55,7 +61,7 @@ class App:
         except AttributeError:
             self.input = [
                     ("Input (bits)", "vmin", Entry, 1),
-                    ("Ouput (bits)", "vmax", Entry, 3),
+                    ("Output (bits)", "vmax", Entry, 3),
                     ("Seed", "seed", Entry, "mySeed"),
                     ("Number of states", "states", Entry, 5),
                     ("Loops (%)", "loops", Scale, 0.0),
@@ -63,7 +69,7 @@ class App:
                 ]
 
         Label(
-            self.frame, padx=10, pady=10 ,relief=RIDGE, text="Please, select a FSM",
+            self.frame, padx=10, pady=10 ,relief=RIDGE, text="FSpyChine",
             justify=CENTER, fg="#00aa00", background=self.SEC_COLOR).grid(row=0,columnspan=5)
 
         radios = [
@@ -82,7 +88,8 @@ class App:
         self.results = {}
 
 
-        refresh(self,self.frame,self.input)
+        self.memo = refresh(self,self.frame,self.input)
+
 
         def exportKiss2():
             method_name = "fsm_" + str(self.v.get())
@@ -91,7 +98,7 @@ class App:
 
         Label(self.frame, text="Path to export", bg=self.MAIN_COLOR).grid(row=6,column=0,sticky=E)
         self.results["path"] = StringVar()
-        self.results["path"].set(home+"/yourfile")
+        self.results["path"].set(home)
 
         t1 = Entry(self.frame, textvariable=self.results["path"])
         t1.grid(row=6,column=1)
@@ -108,13 +115,13 @@ class App:
         b2 = Button(master, text="Export image", command=image)
         b2.pack()
 
-        def getPatterns():
-            method_name = "getPatterns"
-            method = getattr(self, method_name)
-            return method()
-
-        b3 = Button(master, text="Get patterns", command=getPatterns)
-        b3.pack()
+        # def getPatterns():
+        #     method_name = "getPatterns"
+        #     method = getattr(self, method_name)
+        #     return method()
+        #
+        # b3 = Button(master, text="Get patterns", command=getPatterns)
+        # b3.pack()
 
 
 
@@ -135,7 +142,13 @@ class App:
         # method_name = "fsm_" + str(self.v.get())
         # method = getattr(self, method_name)
         # return method()
-        pass
+        if self.v.get() == 3:
+            self.memo[1].config(text='Number of patterns')
+            self.memo[3].config(text='Max pattern length')
+        else :
+            self.memo[1].config(text='Output (bits)')
+            self.memo[3].config(text='Number of states')
+
 
     def fsm_1(self):
 
@@ -208,7 +221,7 @@ class App:
 
 
 root = Tk()
-root.geometry("550x300")
+root.geometry("650x350")
 root.title("FSpyChine -- Developed by Antonio Segura Cano")
 
 app = App(root)

@@ -1,6 +1,6 @@
 __author__ = 'ASC'
 
-import js2py
+# import js2py
 
 
 def wildcard(input):

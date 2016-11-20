@@ -55,4 +55,20 @@ def getPatternsAux(statesdict, actual, statesvisited, value0):
 
     tkMessageBox.showinfo("The patterns are the following: ",store)
 
-
+# http://stackoverflow.com/questions/36380379/python-create-all-possible-unique-lists-with-1-or-0-of-specific-length
+def getPatternList(maxLenght, step):
+    l = ['']
+    for n in range(maxLenght):
+        tmp = []
+        for el in l:
+            tmp.append(el+'0')
+            tmp.append(el+'1')
+            tmp.append('')
+        l = tmp
+    l =sorted(set(l))
+    l = l[1:]
+    res = []
+    for i in l:
+        if i.__len__() % step == 0:
+            res.append(i)
+    return res

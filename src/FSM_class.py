@@ -34,7 +34,7 @@ class FSM:
         self.statesdict = f(self.meta)
 
     def kiss2(self, *args):
-        path = time.strftime("FSM_%m%d%H%M%S.kiss2")
+        filename = time.strftime("FSM_%m%d%H%M%S.kiss2")
         if args:
             path = args[0]
         stated = self.statesdict
@@ -45,7 +45,7 @@ class FSM:
             p = 0
             i = False
             o = False
-            outfile = open(path, 'a')
+            outfile = open(path + "/" + filename, 'a')
             blob = ""
             for statenode in stated:
                 if not i or not o or not r:
@@ -66,7 +66,7 @@ class FSM:
             print "Sorry, but you must create a FSM with 'built' method first"
 
     def image(self, *args):
-        path = time.strftime("FSM_%m%d%H%M%S.png")
+        filename = time.strftime("FSM_%m%d%H%M%S")
 
         if args:
             path = args[0]
@@ -74,37 +74,24 @@ class FSM:
         infile = self.statesdict
         if not infile:
             infile = self.meta["statesdict"]
-        # outfile = open("./temp.txt", 'w').close()
-        # outfile = open("./temp.txt", 'w')
-        # outfile.write("digraph g{\n\t")
-        # writemem = ''
 
         dot = Digraph()
+        # dot.directory = path
+        dot.filename = filename
         dot.format = 'png'
 
         for state in infile:
             dot.node(state, state)
 
         for state in infile:
-            # dot.node(state, state)
             for edge in infile[state]:
                 dot.edge(state,edge[0],edge[1] + ' / ' + edge[2])
-        #         writemem += state + ' -> ' + edge[0] + \
-        #                     ' [label="' + edge[1] + ' ' + edge[2] + '"];\n\t'
-        #
-        # writemem += "\r}"
-        # outfile.write(writemem)
-        # outfile.close()
-
-        # writemem = "digraph g{\n\t" + writemem
-        # https://pypi.python.org/pypi/graphviz
 
         dot.view()
-        # dot.render('test.gv', view=True)
-
-
-
-        # os.system("dot temp.txt -o " + path + " -Tpng && rm temp.txt")
+        try:
+            dot.render(path, view=True)
+        except IOError:
+            pass
 
     def getPatterns(self):
         patternlist = []
@@ -196,10 +183,75 @@ def random(self):
     return statesdict
 
 def pattern(self):
-    self["min"] = self["input"]
-    self["max"] = self["input"]
-    self["pattern"] = True
-    self["statesdict"] = random(self)
+    statesdict = {}
+    patternlist = []
+    input = self["input"]
+    nPatterns = self["output"]
+    seed = self["seed"]
+
+    np.random.seed(int(seed, 36))
+    npri = np.random.random_integers
+
+    allPatterns = getPatternList(self["states"], input)
+
+    for i in range(nPatterns):
+        if allPatterns.__len__() == 0:
+            break
+        patternlist.append(allPatterns.pop(npri(allPatterns.__len__()-1)))
+
+
+    patternCont = 0
+    print patternlist
+    for i in patternlist:
+        splitted = []
+        cont = 0
+        print i
+        for j in range(i.__len__()/input):
+            cont += input
+            splitted.append(i[cont-input:cont])
+
+
+        def createSD(statesdict, crumb, pattern, patternCont):
+            currentState = crumb[crumb.__len__()-1]
+            if not statesdict.has_key(currentState):
+                statesdict[currentState] = []
+            exists = False
+
+            for i in statesdict[currentState]:
+                if pattern[0] == i[1]:
+                    exists = i[0]
+                    break
+            if not exists:
+                o = "0"
+                state = "s"+str(statesdict.__len__())
+                inserted = False
+                if pattern.__len__() == 1:
+                    o = str(patternCont+1)
+                    patternCont += 1
+                    inserted = True
+                statesdict[currentState].append((state,pattern[0],o))
+                crumb.append(state)
+
+                if not inserted:
+                    createSD(statesdict, crumb, pattern[1:], patternCont)
+
+            else :
+                crumb.append(exists)
+                createSD(statesdict, crumb, pattern[1:], patternCont)
+
+            # createSD(statesdict)
+
+            # createSD(statesdict, [])
+
+                pass
+
+
+        createSD(statesdict, ["s0"], splitted, patternCont)
+        patternCont += 1
+
+
+    self["statesdict"] = statesdict
+    return statesdict
 
 def sequential(self):
     try:
