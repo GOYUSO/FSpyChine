@@ -53,7 +53,11 @@ class FSM:
                     o = stated[statenode][0][2].__len__()
                     r = statenode
                 for transition in stated[statenode]:
-                    blob += transition[1] + " " + statenode + " " + transition[0] + " " + transition[2] + "\n"
+                    t2 = int(transition[2])
+                    t2 = "{0:b}".format(t2)
+                    while t2.__len__() < i:
+                        t2 = "0"+t2
+                    blob += transition[1] + " " + statenode + " " + transition[0] + " " + t2 + "\n"
                     p += 1
             iopsr = [i,o,p,stated.__len__(),r]
             header = "iopsr"
@@ -94,11 +98,14 @@ class FSM:
             pass
 
     def getPatterns(self):
-        patternlist = []
-        if "pattern" in self.meta:
-            patternlist = getPatternsAux(self.meta["statesdict"],"s0",[],"")
-        else:
-            print "Method only allowed with pattern FSM"
+        msg = self.meta["patternlist"]
+        message = ""
+        cont = 1
+        for i in msg:
+            message += str(cont) + " -> " + i + "\n"
+            cont += 1
+
+        tkMessageBox.showinfo("The patterns are the following: ", message)
 
     def __makeindeterminacy(cls, *args):
         if args:
@@ -180,6 +187,45 @@ def random(self):
             stl.append((stateslist[nextstate],input,output))
             statesdict[state] = stl
 
+    # Calcular inaccesibilidad
+
+    def inaccess (statesdict, visited, index, canModify):
+
+        if visited.__len__() == 0:
+            visited = ["s0"]
+        if visited.__len__() < index + 1:
+            return canModify
+
+        state = statesdict[visited[index]]
+
+        for edge in state:
+            if not edge[0] in canModify:
+                if edge[0] not in visited:
+                    visited.append(edge[0])
+                canModify[edge[0]] = []
+            else :
+                canModify[edge[0]].append(visited[index])
+
+        index += 1
+        return inaccess(statesdict, visited, index, canModify)
+
+    candidates = inaccess(statesdict, [], 0, {})
+
+    if candidates.__len__() != statesdict.__len__():
+        for i in range(statesdict.__len__()):
+            if not candidates.has_key("s"+str(i)):
+                for j in candidates:
+                    if candidates[j].__len__() != 0:
+                        initialState = candidates[j].pop()
+                        edge = statesdict[initialState]
+                        nlist = []
+                        for k in edge:
+                            if k[0] == j:
+                                nlist.append(("s"+str(i), k[1],k[2]))
+                            else :
+                                nlist.append(k)
+                        statesdict[initialState] = nlist
+
     return statesdict
 
 def pattern(self):
@@ -201,7 +247,7 @@ def pattern(self):
 
 
     patternCont = 0
-    print patternlist
+    self["patternlist"] = patternlist
     for i in patternlist:
         splitted = []
         cont = 0
@@ -238,12 +284,6 @@ def pattern(self):
             else :
                 crumb.append(exists)
                 createSD(statesdict, crumb, pattern[1:], patternCont)
-
-            # createSD(statesdict)
-
-            # createSD(statesdict, [])
-
-                pass
 
 
         createSD(statesdict, ["s0"], splitted, patternCont)

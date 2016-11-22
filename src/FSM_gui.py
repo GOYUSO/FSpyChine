@@ -115,28 +115,30 @@ class App:
         b2 = Button(master, text="Export image", command=image)
         b2.pack()
 
-        # def getPatterns():
-        #     method_name = "getPatterns"
-        #     method = getattr(self, method_name)
-        #     return method()
-        #
-        # b3 = Button(master, text="Get patterns", command=getPatterns)
-        # b3.pack()
+        def getPatterns():
+            method_name = "getPatterns"
+            method = getattr(self, method_name)
+            return method()
 
-
-
+        b3 = Button(master, text="Get patterns", command=getPatterns)
+        b3.pack()
         self.n = 0
 
     def getPatterns(self):
-        r = self.results
-        x = FSM(
-            seed = r["seed"].get(),
-            input=r["vmin"].get(),
-            output=r["vmax"].get(),
-            states=r["states"].get(),
-            loops=r["loops"].get())
-        x.build(pattern)
-        x.getPatterns()
+        if self.v.get() == 3:
+
+            r = self.results
+            x = FSM(
+                seed = r["seed"].get(),
+                input=r["vmin"].get(),
+                output=r["vmax"].get(),
+                states=r["states"].get(),
+                loops=r["loops"].get())
+            x.build(pattern)
+            x.getPatterns()
+
+        else:
+            tkMessageBox.showinfo("This is not possible", "Sorry, but you must use this with a pattern FSM")
 
     def radio_action(self):
         # method_name = "fsm_" + str(self.v.get())
