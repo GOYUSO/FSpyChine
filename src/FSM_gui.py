@@ -135,7 +135,7 @@ class App:
                 states=r["states"].get(),
                 loops=r["loops"].get())
             x.build(pattern)
-            x.getPatterns()
+            x.getPatterns(r["path"].get())
 
         else:
             tkMessageBox.showinfo("This is not possible", "Sorry, but you must use this with a pattern FSM")

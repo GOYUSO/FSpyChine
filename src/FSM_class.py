@@ -53,10 +53,12 @@ class FSM:
                     o = stated[statenode][0][2].__len__()
                     r = statenode
                 for transition in stated[statenode]:
-                    t2 = int(transition[2])
-                    t2 = "{0:b}".format(t2)
-                    while t2.__len__() < i:
-                        t2 = "0"+t2
+                    t2 = transition[2]
+                    if self.meta["type"] == "pattern":
+                        t2 = int(transition[2])
+                        t2 = "{0:b}".format(t2)
+                        while t2.__len__() < math.log(self.meta["output"]-1) + 1:
+                            t2 = "0"+t2
                     blob += transition[1] + " " + statenode + " " + transition[0] + " " + t2 + "\n"
                     p += 1
             iopsr = [i,o,p,stated.__len__(),r]
@@ -79,13 +81,18 @@ class FSM:
         if not infile:
             infile = self.meta["statesdict"]
 
-        dot = Digraph()
+        dot = Digraph(directory=path)
         # dot.directory = path
         dot.filename = filename
         dot.format = 'png'
 
+
         for state in infile:
             dot.node(state, state)
+
+        for state in self.statesdict:
+            dot.edge("",state)
+            break
 
         for state in infile:
             for edge in infile[state]:
@@ -93,17 +100,25 @@ class FSM:
 
         dot.view()
         try:
-            dot.render(path, view=True)
+            dot.render(filename, view=True)
         except IOError:
             pass
 
-    def getPatterns(self):
+    def getPatterns(self, *args):
+        filename = time.strftime("Patterns_FSM_%m%d%H%M%S.txt")
+        if args:
+            path = args[0]
+
+        outfile = open(path + "/" + filename, 'a')
+
         msg = self.meta["patternlist"]
         message = ""
         cont = 1
         for i in msg:
             message += str(cont) + " -> " + i + "\n"
             cont += 1
+
+        outfile.write(message)
 
         tkMessageBox.showinfo("The patterns are the following: ", message)
 
@@ -165,6 +180,8 @@ def random(self):
     outputs = self["output"]
     states = self["states"]
 
+    self["type"] = "random"
+
     statesdict = {}
 
     np.random.seed(int(seed, 36))
@@ -188,26 +205,6 @@ def random(self):
             statesdict[state] = stl
 
     # Calcular inaccesibilidad
-
-    def inaccess (statesdict, visited, index, canModify):
-
-        if visited.__len__() == 0:
-            visited = ["s0"]
-        if visited.__len__() < index + 1:
-            return canModify
-
-        state = statesdict[visited[index]]
-
-        for edge in state:
-            if not edge[0] in canModify:
-                if edge[0] not in visited:
-                    visited.append(edge[0])
-                canModify[edge[0]] = []
-            else :
-                canModify[edge[0]].append(visited[index])
-
-        index += 1
-        return inaccess(statesdict, visited, index, canModify)
 
     candidates = inaccess(statesdict, [], 0, {})
 
@@ -234,6 +231,8 @@ def pattern(self):
     input = self["input"]
     nPatterns = self["output"]
     seed = self["seed"]
+
+    self["type"] = "pattern"
 
     np.random.seed(int(seed, 36))
     npri = np.random.random_integers
@@ -303,6 +302,8 @@ def sequential(self):
         print "You must input seed, number of inputs/outputs and states parameters"
         return
 
+    self["type"] = "sequential"
+
     if not "loops" in self:
         self["loops"] = 0
     if not "jumps" in self:
@@ -350,6 +351,23 @@ def sequential(self):
             statesdict[state] = res
             i += 1
 
+        candidates = inaccess(statesdict, [], 0, {})
+
+        if candidates.__len__() != statesdict.__len__():
+            for i in range(statesdict.__len__()):
+                if not candidates.has_key("s"+str(i)):
+                    for j in candidates:
+                        if candidates[j].__len__() != 0:
+                            initialState = candidates[j].pop()
+                            edge = statesdict[initialState]
+                            nlist = []
+                            for k in edge:
+                                if k[0] == j:
+                                    nlist.append(("s"+str(i), k[1],k[2]))
+                                else :
+                                    nlist.append(k)
+                            statesdict[initialState] = nlist
+
 
         self["statesdict"] = statesdict
 
@@ -357,10 +375,3 @@ def sequential(self):
 
     return statesdict
 
-
-#
-# x1 = FSM(seed="mySeed", input=1, output=1, states=10, loops=0, jumps=0)
-# x1.build(pattern)
-# x1.image()
-# # x1.kiss2()
-# x1.getPatterns()

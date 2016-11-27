@@ -72,3 +72,23 @@ def getPatternList(maxLenght, step):
         if i.__len__() % step == 0:
             res.append(i)
     return res
+
+def inaccess (statesdict, visited, index, canModify):
+
+        if visited.__len__() == 0:
+            visited = ["s0"]
+        if visited.__len__() < index + 1:
+            return canModify
+
+        state = statesdict[visited[index]]
+
+        for edge in state:
+            if not edge[0] in canModify:
+                if edge[0] not in visited:
+                    visited.append(edge[0])
+                canModify[edge[0]] = []
+            else :
+                canModify[edge[0]].append(visited[index])
+
+        index += 1
+        return inaccess(statesdict, visited, index, canModify)
