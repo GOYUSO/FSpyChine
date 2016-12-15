@@ -300,7 +300,7 @@ def sequential(self):
         states = self["states"]
     except KeyError:
         print "You must input seed, number of inputs/outputs and states parameters"
-        return
+        return 1
 
     self["type"] = "sequential"
 
@@ -311,7 +311,7 @@ def sequential(self):
 
     if 100 <= self["loops"] + self["jumps"]:
         tkMessageBox.showinfo("Error", "loops + jumps must be less than 100")
-        return
+        return 1
 
     statesdict = {}
     np.random.seed(int(seed,36))
